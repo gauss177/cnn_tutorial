@@ -1,2 +1,2 @@
-# cnn_tutorial
+#+TITLE: Hello World DNN
 * This is a sync test
