@@ -14,4 +14,9 @@
 # sample出来的字符，是下一次的输入
 
 import torch
+from torch import nn, autograd
 
+class CharRNN(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(CharRNN, self).__init__()
+        self.input_layer = nn.Linear(input_size, hidden_size)

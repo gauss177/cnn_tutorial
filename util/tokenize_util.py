@@ -98,7 +98,7 @@ class Corpus(object):
 
 if __name__ == '__main__':
     path = './test_data'
-    char_corpus = CharCorpus(path, mini_batch=3)
+    char_corpus = CharCorpus(path, mini_batch=15)
     char_corpus.pre_process()
     char_corpus.data_loader()
     print char_corpus.dictionary.word2idx
