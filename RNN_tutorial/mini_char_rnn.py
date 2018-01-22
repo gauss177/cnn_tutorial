@@ -16,7 +16,20 @@
 import torch
 from torch import nn, autograd
 
+
 class CharRNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(CharRNN, self).__init__()
-        self.input_layer = nn.Linear(input_size, hidden_size)
+        # self.input_layer = nn.Linear(input_size, hidden_size)
+        self.rnn = nn.RNN(input_size=input_size, hidden_size=hidden_size, num_layers=1,
+                          batch_first=True)
+        # self.output_layer = nn.Softmax()
+
+    def forward(self, x, h0):
+        x_out, hn = self.rnn(x, h0)
+        return x_out, hn
+
+
+def predict(size):
+    # how to start predict?
+    # or how to generate a char sequense
