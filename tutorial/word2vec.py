@@ -26,6 +26,11 @@ if __name__ == '__main__':
     x = Variable(torch.rand(10, 100))
     loss_func = nn.MSELoss()
 
-    x_pred = word_embedding.forward(x)
-    loss = loss_func(x, x_pred)
+    # set model status
+    word_embedding.train()
+
+    # train one step
+    x_pred = word_embedding(x)
+    loss = loss_func(x_pred, x)
+    loss.backward()
     print loss
