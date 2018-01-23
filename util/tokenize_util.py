@@ -20,13 +20,13 @@ class Dictionary(object):
 
 
 class CharCorpus(object):
-    def __init__(self, path='./data', mini_batch = 100):
+    def __init__(self, path='./data', seq_size = 100):
         self.dictionary = Dictionary()
         self.train = os.path.join(path, 'train.txt')
         self.test = os.path.join(path, 'test.txt')
         self.dir = path
         self.size = 0
-        self.mini_batch = mini_batch
+        self.seq_size = seq_size
         self.tokenize = []
 
     def pre_process(self):
@@ -45,27 +45,26 @@ class CharCorpus(object):
 
     def data_loader(self, test=None):
         # all in memory:
-        mini_batch = self.mini_batch
+        seq_size = self.seq_size
         if test is None:
             path = self.train
         else:
             path = self.test
         # return the whole torch tensor
-        temp_set = [0]*mini_batch
+        temp_set = [0]*seq_size
         for i, x in enumerate(open(path, 'r').read()):
-            index = i%mini_batch
+            index = i%seq_size
             if i>0 and (index == 0 or i==self.size-1):
                 self.tokenize.append(temp_set)
-                temp_set = [0] * mini_batch
+                temp_set = [0] * seq_size
             temp_set[index] = self.dictionary.word2idx[x]
 
-    def data_iter(self, seed=None):
+    def data_iter(self, seed=None, batch_size=1):
         if len(self.tokenize) == 0:
             self.data_loader()
         token_chunk_size = len(self.tokenize)
-        random_seq = np.random.permutation(range(token_chunk_size))
-        for index in random_seq:
-            yield self.tokenize[index]
+        for x in batch_iter(self.tokenize, batch_size, seed):
+            yield x
 
 
 class Corpus(object):
@@ -96,11 +95,36 @@ class Corpus(object):
             path = self.test
 
 
+def one_hot_helper(ids, out_tensor):
+    if not isinstance(ids, (list, np.ndarray)):
+        raise ValueError("ids must be 1-D list or array")
+    ids = torch.LongTensor(ids).view(-1,1)
+    out_tensor.zero_()
+    out_tensor.scatter_(dim=1, index=ids, src=1.)
+
+def one_hot_batch(ids_list, out_tensor_batch, batch_size):
+    out_tensor_batch.zero_()
+    ids_batch = torch.LongTensor(ids_list).view(batch_size, -1, 1)
+    out_tensor_batch.zero_()
+    out_tensor_batch.scatter_(dim=2, index=ids_batch, value=1.0)
+
+def batch_iter(id_list, batch_size, seed):
+    # loop until end: when end is less then batch_size, cut
+    size = len(id_list)
+    max_index = size/batch_size
+    random_seq = np.random.permutation(range(size))
+    for i in range(max_index):
+        batch_index = random_seq[i*batch_size:(i+1)*batch_size]
+        yield [id_list[x] for x in batch_index]
+
 if __name__ == '__main__':
     path = './test_data'
-    char_corpus = CharCorpus(path, mini_batch=15)
+    char_corpus = CharCorpus(path, seq_size=5)
     char_corpus.pre_process()
     char_corpus.data_loader()
     print char_corpus.dictionary.word2idx
     for x in char_corpus.tokenize:
-        print ''.join([char_corpus.dictionary.idx2word[z] for z in x])
+        print ','.join([char_corpus.dictionary.idx2word[z] for z in x]) + '$'
+
+    for x in char_corpus.data_iter(batch_size=2):
+        print x
