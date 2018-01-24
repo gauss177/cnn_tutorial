@@ -138,8 +138,8 @@ def train(path):
     model.train()
 
     count = 0
-    valid_count = 5000
-
+    valid_count = 100
+    print '>>> start to train: '
     for ie in range(epoch):
         for x, y in char_corpus.data_iter(batch_size=batch_size):
             count += 1
@@ -169,4 +169,5 @@ def train(path):
 
 if __name__ == '__main__':
     # test_rnn()
+    torch.set_num_threads(20)
     train('./data')
