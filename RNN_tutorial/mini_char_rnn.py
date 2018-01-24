@@ -61,8 +61,9 @@ def predict(model, seq_len, char_size):
         y_list[i] = x_sample
         start = x_sample
         h0 = h_out
-    return y_list
-
+    # return y_list
+    sentence = ''.join([char_corpus.dictionary.idx2word[i] for i in y_list])
+    return sentence
 
 def predict_helper(model, h, x_in):
     x_out, hout = model(x_in, h)
