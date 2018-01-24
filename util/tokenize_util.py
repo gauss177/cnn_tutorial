@@ -28,6 +28,8 @@ class CharCorpus(object):
         self.size = 0
         self.seq_size = seq_size
         self.tokenize = []
+        self.pre_process()
+        self.data_loader()
 
     def pre_process(self):
         for f in os.listdir(self.dir):
@@ -63,8 +65,9 @@ class CharCorpus(object):
         if len(self.tokenize) == 0:
             self.data_loader()
         token_chunk_size = len(self.tokenize)
-        for x in batch_iter(self.tokenize, batch_size, seed):
-            yield x
+        for x, y in batch_iter(self.tokenize, self.seq_size,
+                               batch_size, seed):
+            yield x, y
 
 
 class Corpus(object):
@@ -108,14 +111,17 @@ def one_hot_batch(ids_list, out_tensor_batch, batch_size):
     out_tensor_batch.zero_()
     out_tensor_batch.scatter_(dim=2, index=ids_batch, value=1.0)
 
-def batch_iter(id_list, batch_size, seed):
+def batch_iter(id_list, seq_size, batch_size, seed):
     # loop until end: when end is less then batch_size, cut
     size = len(id_list)
     max_index = size/batch_size
+    if seed is not None:
+        np.random.seed(seed)
     random_seq = np.random.permutation(range(size))
     for i in range(max_index):
         batch_index = random_seq[i*batch_size:(i+1)*batch_size]
-        yield [id_list[x] for x in batch_index]
+        yield ([id_list[x][:seq_size-1] for x in batch_index],
+               [id_list[x][1:] for x in batch_index])
 
 if __name__ == '__main__':
     path = './test_data'

@@ -16,6 +16,7 @@
 import torch
 from torch import nn, autograd
 import numpy as np
+from torch.autograd import Variable
 from util.tokenize_util import *
 
 
@@ -34,7 +35,7 @@ class CharRNN(nn.Module):
         return x_out, hn
 
 
-def predict(model, seq_len, char_size, hidden_size, h0=None):
+def predict(model, seq_len, char_size, h0):
     # how to start predict?
     # or how to generate a char sequense
     def int_to_torch(n, x):
@@ -42,16 +43,15 @@ def predict(model, seq_len, char_size, hidden_size, h0=None):
         x[0][0][n] = 1.0
         return x
 
-    model.test()
+    model.eval()
     start = np.random.randint(0, char_size-1)
-    if h0 is None:
-        h0 = initial_state(1, hidden_size, zero=True)
     x = torch.zeros(1, 1, char_size)
     y_list = [0]*seq_len
     for i in range(seq_len):
         int_to_torch(start, x)
-        x_out, h_out = model(x, h0)
-        x_sample = sample(x_out.view(-1), char_size)
+        x_out, h_out = model(Variable(x), h0)
+        p = np.exp(x_out.view(-1).data.numpy())
+        x_sample = sample(p/sum(p), char_size)
         y_list[i] = x_sample
         start = x_sample
         h0 = h_out
@@ -76,7 +76,6 @@ def initial_state(batch_size, hidden_size, zero=None):
     h0 = torch.FloatTensor(h/s).view(1, batch_size, hidden_size)
     return h0
 
-
 def test_rnn():
     path = './test_data'
     seq_size = 5
@@ -86,15 +85,32 @@ def test_rnn():
     input_size = char_size
     output_size = char_size
     hidden_size = 5
-    batch_size = 1
+    batch_size = 3
     model = CharRNN(input_size, hidden_size, output_size)
 
-    x_tensor = torch.zeros(batch_size, seq_size, input_size)
-    for x in char_corpus.data_iter(batch_size=batch_size):
-        one_hot_batch(x, x_tensor, batch_size=batch_size)
-        print x
-        print x_tensor
+    x_tensor = torch.zeros(batch_size, seq_size-1, input_size)
+    h0 = Variable(initial_state(batch_size, hidden_size), requires_grad=False)
 
+    loss = nn.CrossEntropyLoss()
+    opt = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    model.train()
+
+    for x, y in char_corpus.data_iter(batch_size=batch_size, seed=1):
+        one_hot_batch(x, x_tensor, batch_size=batch_size)
+        y_tensor = Variable(torch.LongTensor(y), requires_grad=False).view(-1)
+        x_in = Variable(x_tensor, requires_grad=False)
+        # print x_in, h0
+
+        model.zero_grad()
+        h0 = h0.detach()
+        x_out, h0 = model(x_in, h0)
+        l = loss(x_out, y_tensor)
+        l.backward()
+        opt.step()
+
+    h0 = Variable(initial_state(1, hidden_size), requires_grad=False)
+    y_list = predict(model, 100, char_size, h0)
+    print ''.join([char_corpus.dictionary.idx2word[i] for i in y_list])
 
 if __name__ == '__main__':
     test_rnn()
