@@ -142,6 +142,7 @@ def train(path):
     count = 0
     valid_count = 100
     print '>>> start to train: '
+    ep = 0
     for ie in range(epoch):
         for x, y in char_corpus.data_iter(batch_size=batch_size):
             count += 1
@@ -159,6 +160,8 @@ def train(path):
 
             if count%valid_count == 0:
                 print '---------> valid info <--------'
+                print '>> ep={0}/{1}'.format(ie, epoch)
+                print '>> count: {0}/{1}'.format(count*batch_size, len(char_corpus.tokenize))
                 print '>> loss = {0}'.format(l)
                 print '>> sample sentence: '
                 sentence = predict(model, char_corpus, 500)
