@@ -170,5 +170,7 @@ def train(path):
 
 if __name__ == '__main__':
     # test_rnn()
+    from sys import argv
+    path = argv[1]
     torch.set_num_threads(20)
-    train('./data')
+    train(path)
