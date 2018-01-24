@@ -39,7 +39,7 @@ class CharRNN(nn.Module):
         return x_out, hn
 
 
-def predict(model, seq_len, char_size):
+def predict(model, char_corpus, seq_len):
     # how to start predict?
     # or how to generate a char sequense
     def int_to_torch(n, x):
@@ -49,7 +49,8 @@ def predict(model, seq_len, char_size):
 
     hidden_size = model.hidden_size
     h0 = Variable(initial_state(1, hidden_size), requires_grad=False)
-
+    char_size = len(char_corpus.dictionary.word2idx)
+    
     start = np.random.randint(0, char_size-1)
     x = torch.zeros(1, 1, char_size)
     y_list = [0]*seq_len
@@ -157,15 +158,14 @@ def train(path):
             opt.step()
 
             if count%valid_count == 0:
-                model.eval()
                 print '---------> valid info <--------'
                 print '>> loss = {0}'.format(l)
                 print '>> sample sentence: '
-                sentence = predict(model, 500, char_size)
+                sentence = predict(model, char_corpus, 500, char_size)
                 print sentence
-                model.train()
+
     model.eval()
-    sentence = predict(model, 5000, char_size)
+    sentence = predict(model, char_corpus, 5000, char_size)
     print sentence
 
 if __name__ == '__main__':
