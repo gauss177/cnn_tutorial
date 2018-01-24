@@ -28,7 +28,9 @@ class CharCorpus(object):
         self.size = 0
         self.seq_size = seq_size
         self.tokenize = []
+        print '>>> start to read word dictionary:'
         self.pre_process()
+        print '>>> start to tokenization data:'
         self.data_loader()
 
     def pre_process(self):
