@@ -50,7 +50,7 @@ def predict(model, char_corpus, seq_len):
     hidden_size = model.hidden_size
     h0 = Variable(initial_state(1, hidden_size), requires_grad=False)
     char_size = len(char_corpus.dictionary.word2idx)
-    
+
     start = np.random.randint(0, char_size-1)
     x = torch.zeros(1, 1, char_size)
     y_list = [0]*seq_len
@@ -161,11 +161,11 @@ def train(path):
                 print '---------> valid info <--------'
                 print '>> loss = {0}'.format(l)
                 print '>> sample sentence: '
-                sentence = predict(model, char_corpus, 500, char_size)
+                sentence = predict(model, char_corpus, 500)
                 print sentence
 
     model.eval()
-    sentence = predict(model, char_corpus, 5000, char_size)
+    sentence = predict(model, char_corpus, 5000)
     print sentence
 
 if __name__ == '__main__':
