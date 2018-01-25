@@ -28,7 +28,7 @@ class CharRNN(nn.Module):
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        self.rnn = nn.RNN(input_size=input_size, hidden_size=hidden_size, num_layers=1,
+        self.rnn = nn.GRU(input_size=input_size, hidden_size=hidden_size, num_layers=1,
                           batch_first=True)
         self.output_layer = nn.Linear(hidden_size, output_size)
 
