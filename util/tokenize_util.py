@@ -30,8 +30,10 @@ class CharCorpus(object):
         self.tokenize = []
         print '>>> start to read word dictionary:'
         self.pre_process()
+        print '<<< finished read word dictionary'
         print '>>> start to tokenization data:'
         self.data_loader()
+        print '<<< finished tokenization data'
 
     def pre_process(self):
         for f in os.listdir(self.dir):
